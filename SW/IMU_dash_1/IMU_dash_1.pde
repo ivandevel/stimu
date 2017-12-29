@@ -32,15 +32,12 @@ import processing.serial.*;
 Serial myPort;  // Create object from Serial class
 
 final String serialPort = "COM8"; // replace this with your serial port. On windows you will need something like "COM1".
-
 float [] accel = new float [3];
 float [] gyro = new float [3];
 float [] hq = null;
 float [] Euler = new float [3]; // psi, theta, phi
-
 int lf = 10; // 10 is '\n' in ASCII
 byte[] inBuffer = new byte[22]; // this is the number of chars on each line from the Arduino (including /r/n)
-
 PFont font;
 final int VIEW_SIZE_X = 800, VIEW_SIZE_Y = 600; 
 PShape s;
@@ -51,8 +48,10 @@ int actualSample = 0;
 int sampleStep = 1;
 String[] AccelNames = { "PICH", "ROLL",  "YAW"};
 String[] GyroNames = { "PICH", "ROLL",  "YAW"};
+String[] PressureNames = { "ALTITUDE", "---",  "---"};
 float[][] accelValues = new float[3][maxSamples];
 float[][] gyroValues = new float[3][maxSamples];
+float[][] pressureValues = new float [3][maxSamples];
 PGraphics pgChart;
 int[] colors = { #ff4444, #33ff99, #5588ff };
 
@@ -81,6 +80,10 @@ void serialEvent (Serial myPort)
       //print(inputStringArr[2]+"\r\n");
       //print(inputStringArr[3]+"\r\n");
       
+        Euler[2] = Float.parseFloat(inputStringArr[0]);
+        Euler[1] = Float.parseFloat(inputStringArr[1]);
+        Euler[0] = Float.parseFloat(inputStringArr[2]);
+        
         accelValues[0][actualSample] = (Float.parseFloat(inputStringArr[3]))*100;
         accelValues[1][actualSample] = (Float.parseFloat(inputStringArr[4]))*100;
         accelValues[2][actualSample] = (Float.parseFloat(inputStringArr[5]))*100;
@@ -88,11 +91,8 @@ void serialEvent (Serial myPort)
         gyroValues[0][actualSample] = (Float.parseFloat(inputStringArr[6]));
         gyroValues[1][actualSample] = (Float.parseFloat(inputStringArr[7]));
         gyroValues[2][actualSample] = (Float.parseFloat(inputStringArr[8]));
-        
-        Euler[2] = Float.parseFloat(inputStringArr[0]);
-        Euler[1] = Float.parseFloat(inputStringArr[1]);
-        Euler[0] = Float.parseFloat(inputStringArr[2]);
-        
+        //pressureValues[0][actualSample] = (Float.parseFloat(inputStringArr[9]));
+
         if (actualSample > 1)
     {
       hasData = true;
@@ -104,6 +104,7 @@ void serialEvent (Serial myPort)
       //nextSample(pyrValuesFiltered);
       nextSample(accelValues);
       nextSample(gyroValues);
+      nextSample(pressureValues);
       //nextSample(rollValues);
     } else
     {
@@ -211,6 +212,7 @@ void draw() {
   drawCube(); 
   drawChart("Accelerometer [deg]", AccelNames, accelValues, 10, 10, 200, true, true, -125, 125, 25); 
   drawChart("Gyroscope [dps]", GyroNames, gyroValues, 10, 290, 200, true, true, -200, 200,50); 
+  drawChart("Altitude [meters]", PressureNames, pressureValues, 10, 570, 200, true, true, 0, 200,50); 
 }
 
 
